@@ -1,5 +1,5 @@
 import tensorflow as tf
-import cmath as math
+import numpy as np
 
 
 class ESIM(object):
@@ -14,26 +14,27 @@ class ESIM(object):
         self.class_num = class_num
 
         # init placeholder
-        self.text_a = tf.placeholder(tf.int32, [None, seq_length], name='text_a')
-        self.text_b = tf.placeholder(tf.int32, [None, seq_length], name='text_b')
-        self.y = tf.placeholder(tf.int32, [None, class_num], name='y')
+        self.text_a = tf.placeholder(tf.int32, [None, seq_length], name='text_a')  # shape=(?, 20)
+        self.text_b = tf.placeholder(tf.int32, [None, seq_length], name='text_b')  # shape=(?, 20)
+        self.y = tf.placeholder(tf.int32, [None, class_num], name='y')  # shape=(?, 2)
         # real length
-        self.a_length = tf.placeholder(tf.int32, [None], name='a_length')
-        self.b_length = tf.placeholder(tf.int32, [None], name='b_length')
+        self.a_length = tf.placeholder(tf.int32, [None], name='a_length')  # shape=(?,)
+        self.b_length = tf.placeholder(tf.int32, [None], name='b_length')  # shape=(?,)
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
         # embedding层 论文中采用是预训练好的词向量 这里随机初始化一个词典 在训练过程中进行调整
-        with tf.device('/cpu:0'), tf.name_scope("embedding"):
+        with tf.device('/cpu:0'), tf.name_scope("embedding"):  # shape=(10000, 300)
             self.vocab_matrix = tf.Variable(tf.truncated_normal(shape=[vocabulary_size, embedding_size],
-                                                                stddev=1.0 / math.sqrt(embedding_size)),
+                                                                stddev=1.0 / np.power(embedding_size, 0.5)),
                                             name='vacab_matrix')
-            self.text_a_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_a)
-            self.text_b_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_b)
+            self.text_a_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_a)  # shape=(?, 20, 300)
+            self.text_b_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_b)  # shape=(?, 20, 300)
 
         # Input Encoding
         with tf.name_scope('Input_Encoding'):
-            a_bar = self.biLSTMBlock(self.text_a_embed, hidden_num, 'Input_Encoding/biLSTM', self.a_length)
-            b_bar = self.biLSTMBlock(self.text_b_embed, hidden_num, 'Input_Encoding/biLSTM', self.b_length, isreuse=True)
+            a_bar = self.biLSTMBlock(self.text_a_embed, hidden_num, 'Input_Encoding/biLSTM', self.a_length)  # shape=(?, 20, 400)
+            b_bar = self.biLSTMBlock(self.text_b_embed, hidden_num, 'Input_Encoding/biLSTM', self.b_length,  # shape=(?, 20, 400)
+                                     isreuse=True)
 
         # Local Inference Modeling
         with tf.name_scope('Local_inference_Modeling'):
@@ -117,4 +118,4 @@ class ESIM(object):
 
 
 if __name__ == '__main__':
-    esim = ESIM(True, 20, 2, 10000, 300, 300, 0.001, 0.0001)
+    esim = ESIM(True, 20, 2, 10000, 300, 200, 0.001, 0.0001)
