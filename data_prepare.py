@@ -10,7 +10,7 @@ class Data_Prepare(object):
         texta = []
         textb = []
         tag = []
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 line = line.strip().split("\t")
                 texta.append(self.pre_processing(line[0]))

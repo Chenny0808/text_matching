@@ -11,8 +11,8 @@ class Infer(object):
         ues model to predict classification.
     """
     def __init__(self):
-        self.vocab_processor = learn.preprocessing.VocabularyProcessor.restore('save_model/vocab.pickle')
-        self.checkpoint_file = tf.train.latest_checkpoint('save_model')
+        self.vocab_processor = learn.preprocessing.VocabularyProcessor.restore('../save_model/lstm/vocab.pickle')
+        self.checkpoint_file = tf.train.latest_checkpoint('../save_model/lstm/')
         graph = tf.Graph()
         with graph.as_default():
             session_conf = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
@@ -23,15 +23,15 @@ class Infer(object):
                 saver.restore(self.sess, self.checkpoint_file)
 
                 # Get the placeholders from the graph by name
-                self.text_a = graph.get_operation_by_name("esim_model/text_a").outputs[0]
-                self.text_b = graph.get_operation_by_name("esim_model/text_b").outputs[0]
-                self.a_length = graph.get_operation_by_name("esim_model/a_length").outputs[0]
-                self.b_length = graph.get_operation_by_name("esim_model/b_length").outputs[0]
-                self.drop_keep_prob = graph.get_operation_by_name("esim_model/dropout_keep_prob").outputs[0]
+                self.text_a = graph.get_operation_by_name("bi_listm_model/text_a").outputs[0]
+                self.text_b = graph.get_operation_by_name("bi_listm_model/text_b").outputs[0]
+                self.a_length = graph.get_operation_by_name("bi_listm_model/a_length").outputs[0]
+                self.b_length = graph.get_operation_by_name("bi_listm_model/b_length").outputs[0]
+                self.drop_keep_prob = graph.get_operation_by_name("bi_listm_model/dropout_keep_prob").outputs[0]
 
                 # Tensors we want to evaluate
-                self.prediction = graph.get_operation_by_name("esim_model/output/prediction").outputs[0]
-                self.score = graph.get_operation_by_name("esim_model/output/score").outputs[0]
+                self.prediction = graph.get_operation_by_name("bi_listm_model/output/prediction").outputs[0]
+                self.score = graph.get_operation_by_name("bi_listm_model/output/score").outputs[0]
 
     def infer(self, sentenceA, sentenceB):
         # transfer to vector
@@ -55,10 +55,3 @@ if __name__ == '__main__':
     sentencea = '你点击详情'
     sentenceb = '您点击详情'
     print(infer.infer(sentencea, sentenceb))
-
-
-
-
-
-
-

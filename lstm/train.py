@@ -138,3 +138,6 @@ class TrainModel(object):
 if __name__ == '__main__':
     train = TrainModel()
     train.trainModel()
+
+
+    # f1 = 0.675
