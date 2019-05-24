@@ -1,5 +1,5 @@
 import tensorflow as tf
-import math
+import numpy as np
 
 
 class Bi_lstm(object):
@@ -14,30 +14,30 @@ class Bi_lstm(object):
         self.class_num = class_num
 
         # init placeholder
-        self.text_a = tf.placeholder(tf.int32, [None, seq_length], name='text_a')
+        self.text_a = tf.placeholder(tf.int32, [None, seq_length], name='text_a')  # (?, 20)
         self.text_b = tf.placeholder(tf.int32, [None, seq_length], name='text_b')
         self.y = tf.placeholder(tf.int32, [None, class_num], name='y')
         # real length
-        self.a_length = tf.placeholder(tf.int32, [None], name='a_length')
+        self.a_length = tf.placeholder(tf.int32, [None], name='a_length')  # (?,)
         self.b_length = tf.placeholder(tf.int32, [None], name='b_length')
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
         # embedding层 论文中采用是预训练好的词向量 这里随机初始化一个词典 在训练过程中进行调整
         with tf.device('/cpu:0'), tf.name_scope("embedding"):
             self.vocab_matrix = tf.Variable(tf.truncated_normal(shape=[vocabulary_size, embedding_size],
-                                                                stddev=1.0 / math.sqrt(embedding_size)),
+                                                                stddev=1.0 / np.power(embedding_size, 0.5)),
                                             name='vacab_matrix')
-            self.text_a_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_a)
+            self.text_a_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_a)  # (?, 20, 100)
             self.text_b_embed = tf.nn.embedding_lookup(self.vocab_matrix, self.text_b)
 
         with tf.name_scope('Input_Encoding'):
-            a = self.biLSTMBlock(self.text_a_embed, hidden_num, 'Input_Encoding/biLSTM', self.a_length)
+            a = self.biLSTMBlock(self.text_a_embed, hidden_num, 'Input_Encoding/biLSTM', self.a_length)  # (?, 20, 256)
             b = self.biLSTMBlock(self.text_b_embed, hidden_num, 'Input_Encoding/biLSTM', self.b_length, isreuse=True)
 
-        diff = tf.subtract(a, b)
+        diff = tf.subtract(a, b)  # a - b， (?, 20, 256)
 
         with tf.name_scope("output"):
-            initializer = tf.random_normal_initializer(0.0, 0.1)
+            initializer = tf.random_normal_initializer(0.0, 0.1)  # 0.0, 0.1： 均值，方差
             with tf.variable_scope('feed_foward'):
                 outputs = tf.nn.dropout(diff, self.dropout_keep_prob)
                 outputs = tf.reshape(outputs, [-1, hidden_num * seq_length * 2])
@@ -47,11 +47,11 @@ class Bi_lstm(object):
             self.prediction = tf.argmax(self.score, 1, name="prediction")
 
         with tf.name_scope('cost'):
-            self.cost = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y, logits=self.logits)
-            self.cost = tf.reduce_mean(self.cost)
+            self.cost = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y, logits=self.logits)  # (?,)
+            self.cost = tf.reduce_mean(self.cost)  # ()
             weights = [v for v in tf.trainable_variables() if ('w' in v.name) or ('kernel' in v.name)]
-            l2_loss = tf.add_n([tf.nn.l2_loss(w) for w in weights]) * l2_lambda
-            self.loss = l2_loss + self.cost
+            l2_loss = tf.add_n([tf.nn.l2_loss(w) for w in weights]) * l2_lambda  # l2 正则化损失
+            self.loss = l2_loss + self.cost  # 两损失相加得总损失
 
         self.accuracy = tf.reduce_mean(
             tf.cast(tf.equal(tf.argmax(self.y, axis=1), self.prediction), tf.float32))
@@ -60,7 +60,7 @@ class Bi_lstm(object):
             return
 
         tvars = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), 5)
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), 5)  # 梯度截断，防止梯度爆炸、消失
 
         optimizer = tf.train.AdamOptimizer(learning_rate)
         self.train_op = optimizer.apply_gradients(zip(grads, tvars))
@@ -81,4 +81,4 @@ class Bi_lstm(object):
 
 
 if __name__ == '__main__':
-    esim = Bi_lstm(True, 20, 2, 10000, 300, 300, 0.001, 0.0001)
+    esim = Bi_lstm(True, 20, 2, 10000, 100, 128, 0.001, 0.0001)

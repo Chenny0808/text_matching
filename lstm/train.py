@@ -15,10 +15,9 @@ data_pre = data_prepare.Data_Prepare()
 
 
 class TrainModel(object):
-    '''
-        训练模型
-        保存模型
-    '''
+    """
+    训练模型、保存模型
+    """
     def pre_processing(self):
         train_texta, train_textb, train_tag = data_pre.readfile(parent_path+'/data/train.txt')
         data = []
