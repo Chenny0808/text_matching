@@ -34,6 +34,7 @@ class Data_Prepare(object):
             temp = [0] * len(type)
             temp[int(x)] = 1
             tags_vec.append(temp)
+        dicts['all'] = sum(dicts.values())
         print(dicts)
         return texta_new, textb_new, tags_vec
 
