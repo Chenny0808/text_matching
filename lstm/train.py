@@ -99,8 +99,8 @@ class TrainModel(object):
             saver = tf.train.Saver()
             best_f1 = 0.0
             for epoch in range(1, con.epoch+1):
-                # print("training epoch" + str(epoch + 1))
-                logger.info("training epoch" + str(epoch))
+                print("training epoch" + str(epoch + 1))
+                # logger.info("training epoch" + str(epoch))
                 model.is_trainning = True
                 loss_all = []
                 accuracy_all = []
@@ -118,10 +118,10 @@ class TrainModel(object):
                     loss_all.append(cost)
                     accuracy_all.append(accuracy)
 
-                # print("第" + str((epoch + 1)) + "次迭代的损失为：" + str(np.mean(np.array(loss_all))) + ";准确率为：" +
-                #       str(np.mean(np.array(accuracy_all))))
-                logger.info("epoch " + str(epoch) + ": loss=" + str(np.mean(np.array(loss_all))) + "; accuracy=" +
+                print("第" + str((epoch + 1)) + "次迭代的损失为：" + str(np.mean(np.array(loss_all))) + ";准确率为：" +
                       str(np.mean(np.array(accuracy_all))))
+                # logger.info("epoch " + str(epoch) + ": loss=" + str(np.mean(np.array(loss_all))) + "; accuracy=" +
+                #       str(np.mean(np.array(accuracy_all))))
 
                 def dev_step():
                     """
@@ -147,12 +147,12 @@ class TrainModel(object):
                     y_true = [np.nonzero(x)[0][0] for x in dev_tag]
                     y_true = y_true[0:len(loss_all) * con.Batch_Size]
                     f1 = f1_score(np.array(y_true), np.array(predictions), average='weighted')
-                    # print('分类报告:\n', metrics.classification_report(np.array(y_true), predictions))
-                    # print("验证集：loss {:g}, acc {:g}, f1 {:g}\n".format(np.mean(np.array(loss_all)),
-                    #                                                   np.mean(np.array(accuracy_all)), f1))
-                    logger.info("classification_report:\n", str(metrics.classification_report(np.array(y_true), predictions)))
-                    logger.info("dev：loss {:g}, acc {:g}, f1 {:g}".format(np.mean(np.array(loss_all)),
+                    print('分类报告:\n', metrics.classification_report(np.array(y_true), predictions))
+                    print("验证集：loss {:g}, acc {:g}, f1 {:g}\n".format(np.mean(np.array(loss_all)),
                                                                       np.mean(np.array(accuracy_all)), f1))
+                    # logger.info("classification_report:\n", str(metrics.classification_report(np.array(y_true), predictions)))
+                    # logger.info("dev：loss {:g}, acc {:g}, f1 {:g}".format(np.mean(np.array(loss_all)),
+                    #                                                   np.mean(np.array(accuracy_all)), f1))
                     return f1
 
                 model.is_trainning = False
